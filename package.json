@@ -1,0 +1,68 @@
+{
+  "name": "vscode-codemap-ai",
+  "displayName": "CodeMap AI",
+  "description": "Scans your project and generates a CODEMAP.md for AI assistants, including structure, summaries, symbols, routes, and database schemas.",
+  "version": "0.0.1",
+  "publisher": "zebdu",
+  "engines": {
+    "vscode": ">=1.70.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/*"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codemap.fullRescan",
+        "title": "CodeMap: Full Rescan"
+      },
+      {
+        "command": "codemap.openSummary",
+        "title": "CodeMap: Open Summary"
+      },
+      {
+        "command": "codemap.validate",
+        "title": "CodeMap: Validate Map"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "CodeMap AI",
+      "properties": {
+        "codemap.maxFileKB": { "type": "number", "default": 800, "description": "Max file size to scan (KB)" },
+        "codemap.shardMaxKB": { "type": "number", "default": 200, "description": "Max shard size (KB)" },
+        "codemap.debounceMs": { "type": "number", "default": 750, "description": "Debounce time for triggers (ms)" },
+        "codemap.enableGitIntegration": { "type": "boolean", "default": true, "description": "Enable Git integration" },
+        "codemap.respectGitignore": { "type": "boolean", "default": true, "description": "Respect .gitignore" },
+        "codemap.extraIgnoreGlobs": { "type": "array", "items": { "type": "string" }, "description": "Extra ignore globs" },
+        "codemap.emitRoutes": { "type": "boolean", "default": true, "description": "Emit routes map" },
+        "codemap.emitDatabase": { "type": "boolean", "default": true, "description": "Emit database map" },
+        "codemap.emitSymbols": { "type": "boolean", "default": true, "description": "Emit symbols map" },
+        "codemap.failCIIfStale": { "type": "boolean", "default": false, "description": "Fail CI if map is stale" },
+        "codemap.summaryOnOpen": { "type": "boolean", "default": true, "description": "Show summary on open" }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        { "command": "codemap.openSummary", "when": "editorTextFocus" }
+      ],
+      "explorer/context": [
+        { "command": "codemap.openSummary", "when": "resourceLangId == markdown" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+  "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+  "@types/vscode": "^1.70.0"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,16 @@
+# CodeMap Ignore Rules
+# Similar to .gitignore, but specifically for CodeMap scanning
+
+# Temp files
+*.tmp
+*.log
+
+# Large data files
+*.csv
+*.json
+data/
+datasets/
+
+# Generated documentation
+docs/build/
+site/
