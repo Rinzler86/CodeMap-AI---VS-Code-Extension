@@ -9,6 +9,7 @@ export interface FileEntry {
   refs?: string[];
   detectors?: string[];
   truncated?: boolean;
+  deepAnalysis?: any; // Deep analysis results with detailed symbols, routes, schemas, etc.
 }
 
 export interface SymbolEntry {

@@ -4,6 +4,7 @@
   "description": "Scans your project and generates a CODEMAP.md for AI assistants, including structure, summaries, symbols, routes, and database schemas.",
   "version": "0.0.1",
   "publisher": "zebdu",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": ">=1.70.0"
   },

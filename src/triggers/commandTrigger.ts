@@ -3,8 +3,7 @@ import * as vscode from 'vscode';
 import { scanWorkspace } from '../index/indexStore';
 import { showSummaryWebview } from '../ui/summaryWebview';
 import { loadConfig } from '../config';
-import { getLogger } from '../logger';
-import { setStatusScanning, setStatusIdle } from '../statusBar';
+import { getLogger, enableOutputChannel } from '../logger';
 
 export function setupCommandTriggers(context: vscode.ExtensionContext) {
   // Full rescan command
@@ -13,16 +12,17 @@ export function setupCommandTriggers(context: vscode.ExtensionContext) {
       const config = loadConfig();
       const logger = getLogger();
       
-      setStatusScanning();
+      // Show the output channel so user can see progress
+      enableOutputChannel();
+      logger.appendLine('🚀 Manual full rescan initiated...');
+      
       try {
         await scanWorkspace(config, logger);
         showSummaryWebview();
         vscode.window.showInformationMessage('CodeMap: Full rescan completed.');
       } catch (e) {
-        logger.appendLine(`Full rescan error: ${e}`);
+        logger.appendLine(`❌ Full rescan error: ${e}`);
         vscode.window.showErrorMessage('CodeMap: Rescan failed. Check output panel.');
-      } finally {
-        setStatusIdle();
       }
     })
   );

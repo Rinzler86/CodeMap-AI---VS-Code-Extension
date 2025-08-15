@@ -9,6 +9,11 @@ export function getLogger(): vscode.OutputChannel {
   return outputChannel;
 }
 
+export function enableOutputChannel() {
+  const logger = getLogger();
+  logger.show(true); // Show the output channel
+}
+
 export function logError(e: any) {
   getLogger().appendLine(`[ERROR] ${e?.message || e}`);
 }
