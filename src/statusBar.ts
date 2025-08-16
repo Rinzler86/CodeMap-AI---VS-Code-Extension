@@ -20,6 +20,7 @@ export function updateStatusBar(state: string) {
   if (statusBar) {
     statusBar.text = `CodeMap: ${state}`;
     statusBar.tooltip = `CodeMap AI - ${state}`;
+    statusBar.show(); // Ensure it's visible
     console.log(`[StatusBar] Status bar updated successfully to: ${statusBar.text}`);
   } else {
     console.log(`[StatusBar] ERROR: statusBar is undefined!`);
@@ -28,7 +29,7 @@ export function updateStatusBar(state: string) {
 
 // Specific status functions for different operations
 export function setStatusScanning() {
-  console.log(`[StatusBar] setStatusScanning called`);
+  console.log(`[StatusBar] setStatusScanning called  `);
   updateStatusBar('scanning files…');
 }
 
@@ -65,4 +66,17 @@ export function setStatusIdle() {
 export function setStatusWorking(operation: string) {
   console.log(`[StatusBar] setStatusWorking called with: ${operation}`);
   updateStatusBar(`${operation}…`);
+}
+
+// Test function to verify status bar is working
+export function testStatusBar() {
+  console.log('[StatusBar] Testing status bar...');
+  if (statusBar) {
+    updateStatusBar('testing...');
+    setTimeout(() => updateStatusBar('test complete'), 2000);
+    setTimeout(() => updateStatusBar('idle'), 4000);
+    console.log('[StatusBar] Test sequence started');
+  } else {
+    console.log('[StatusBar] ERROR: Cannot test - statusBar is undefined!');
+  }
 }

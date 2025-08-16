@@ -21,6 +21,10 @@
         "title": "CodeMap: Full Rescan"
       },
       {
+        "command": "codemap.testStatusBar",
+        "title": "CodeMap: Test Status Bar"
+      },
+      {
         "command": "codemap.openSummary",
         "title": "CodeMap: Open Summary"
       },
