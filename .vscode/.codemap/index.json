@@ -1,0 +1,205 @@
+{
+  "version": 1,
+  "files": {
+    ".codemapignore": {
+      "hash": "a26a982cb6824d67f78c3760c976a6f69047ce1710d94351ad50cb47d56ba3ac",
+      "lang": "codemapignore",
+      "lastScan": 1755314744294
+    },
+    ".gitignore": {
+      "hash": "0772102a090d95cf9973b6849be3cf2c83a3d84dfcd46d36f43d10307c821e02",
+      "lang": "gitignore",
+      "lastScan": 1755314744294
+    },
+    "CHANGELOG.md": {
+      "hash": "6b972f58b0d67d434a3735f0e84053736b99856daa75d7487616a404d355ac0d",
+      "lang": "md",
+      "lastScan": 1755314744295
+    },
+    "CODEMAP.md": {
+      "hash": "755db76700087e85c44036992caa7c0b90539c5eb9af4fb77bf767f6e2e1b59a",
+      "lang": "md",
+      "lastScan": 1755314697846
+    },
+    "debug-walk.js": {
+      "hash": "60cbd0d9a96c63674b606e2bef9b7693bbfb415a75df3a6626ffaae671931162",
+      "lang": "js",
+      "lastScan": 1755314744295
+    },
+    "instructions.md": {
+      "hash": "cc76a0a0ee1d18cd1d60c64f8fc6c0ed273b1df574e7bb54be7fc4eace41c284",
+      "lang": "md",
+      "lastScan": 1755314744296
+    },
+    "manual-test.js": {
+      "hash": "4ecfffa9f11524aea1aa65c926b77c34587592796304146f5d594173901ea382",
+      "lang": "js",
+      "lastScan": 1755314744297
+    },
+    "package-lock.json": {
+      "hash": "0844a6bd3088a7f3e30e60f28c9bc49d367b367d6a65a78e514a3a67494d4d3e",
+      "lang": "json",
+      "lastScan": 1755314744297
+    },
+    "package.json": {
+      "hash": "d36ec81a57a94f2fd1058bd32e78087d95a775b11396cfeac7c48087b535e470",
+      "lang": "json",
+      "lastScan": 1755314744298
+    },
+    "README.md": {
+      "hash": "6e0137d435a9dcb2c67882fc5e8d868fcc4186d08b035c9cd7d8161a7d5c078b",
+      "lang": "md",
+      "lastScan": 1755314744298
+    },
+    "src/analyzers/codeAnalyzer.ts": {
+      "hash": "60ebe08710dd6ee2674b3ebbf6ae0fbd18ccfac2bc81ec59fc7052c2ad79ff52",
+      "lang": "ts",
+      "lastScan": 1755314744300
+    },
+    "src/analyzers/deepAnalyzer.ts": {
+      "hash": "37b5f8df0f521d987d9d705ea59e4bca60283c09c8f86a57b7a00e437413e1bd",
+      "lang": "ts",
+      "lastScan": 1755314744303
+    },
+    "src/analyzers/fileGrouper.ts": {
+      "hash": "4e6c3cf646ac636c2af5184856057f4f482a16f5424f0cc989d733a18ce0bb2a",
+      "lang": "ts",
+      "lastScan": 1755314744304
+    },
+    "src/config.ts": {
+      "hash": "1bb08a828451c635490da46585ecc6317a1a7b7216b824271f154fbd493913e4",
+      "lang": "ts",
+      "lastScan": 1755314744307
+    },
+    "src/extension.ts": {
+      "hash": "12f3be29427c27d020bf7ce79aaf925550cbfb57089a8943af6c8d4b2b450c2a",
+      "lang": "ts",
+      "lastScan": 1755314744308
+    },
+    "src/index/codemapEmitter.ts": {
+      "hash": "e3e6ffa3cb9962101a8a00a75a8ff1f158e6566925ededf056df348e9b8e8134",
+      "lang": "ts",
+      "lastScan": 1755314744310
+    },
+    "src/index/delta.ts": {
+      "hash": "db03ac02960045e4ac069b4c7a0891f290194e986377128bb55c1bc1d6f6bcf3",
+      "lang": "ts",
+      "lastScan": 1755314744310
+    },
+    "src/index/indexStore.ts": {
+      "hash": "0f71412bbc884caefac3398e124f366a5a18697ffba31aa89815eeaeb3582cbf",
+      "lang": "ts",
+      "lastScan": 1755314744312
+    },
+    "src/index/schemas.ts": {
+      "hash": "fa2dcfb5a6a7c32c4b906616359fb2350165e6908a852590d03e16dcbe2be608",
+      "lang": "ts",
+      "lastScan": 1755314744313
+    },
+    "src/logger.ts": {
+      "hash": "c303f7342338446d234f16be5f83702cbc491a380f66f64ee05fb74ed1d181ed",
+      "lang": "ts",
+      "lastScan": 1755314744313
+    },
+    "src/scanners/genericScanner.ts": {
+      "hash": "a8f581b9385bc2861c7f8a5d1037e73fe14fec7ade01752d7acc184a37e0f8b9",
+      "lang": "ts",
+      "lastScan": 1755314744314
+    },
+    "src/scanners/js/expressScanner.ts": {
+      "hash": "c831057c78156aa2c3834d4e3fe56039897827388381182a90d399ec92497988",
+      "lang": "ts",
+      "lastScan": 1755314744315
+    },
+    "src/scanners/js/reactScanner.ts": {
+      "hash": "26dd0b409138e68c8029f7fb4bb26c6ca6c2488740bac3f49472808cf2fadf7b",
+      "lang": "ts",
+      "lastScan": 1755314744316
+    },
+    "src/scanners/python/flaskScanner.ts": {
+      "hash": "eb233e5c4bea910680d106b2d6b11d9b42e1b0c870d98e2563211ad153ffec18",
+      "lang": "ts",
+      "lastScan": 1755314744317
+    },
+    "src/scanners/scanner.ts": {
+      "hash": "f4a1744dcf3029fa90db847df9e8616fa818d87c1e36cc0e90917b7ae541a94b",
+      "lang": "ts",
+      "lastScan": 1755314744317
+    },
+    "src/statusBar.ts": {
+      "hash": "6cafbd7ea1a7aad35b27c537e374f89c58c5745d575ef43973b5d65eac3c49e8",
+      "lang": "ts",
+      "lastScan": 1755314744318
+    },
+    "src/triggers/commandTrigger.ts": {
+      "hash": "2c0b3265e26e76ac2482ba78e628e06bf4ee77070535e55947b9c1fa79537640",
+      "lang": "ts",
+      "lastScan": 1755314744319
+    },
+    "src/triggers/gitTrigger.ts": {
+      "hash": "af4ee0ce3d81739a81fe79b7d92464e25773c42cdb5a5238330bd8b45d8815f1",
+      "lang": "ts",
+      "lastScan": 1755314744319
+    },
+    "src/triggers/saveTrigger.ts": {
+      "hash": "f998050f2dbebf140b311549c5330031c11f6112a18d4398aa3b11e737faedc5",
+      "lang": "ts",
+      "lastScan": 1755314744320
+    },
+    "src/triggers/workspaceOpenTrigger.ts": {
+      "hash": "5b1b89fe99adbb854f6e19f3de06320a46ad84ab1b15bcf8b31442a639ffe3e3",
+      "lang": "ts",
+      "lastScan": 1755314744320
+    },
+    "src/ui/summaryWebview.ts": {
+      "hash": "9a713c94e2e204299c86ebc893b7223e160d62c206a36e8bbb5f6b85ac90e2b5",
+      "lang": "ts",
+      "lastScan": 1755314744321
+    },
+    "src/utils/fs.ts": {
+      "hash": "5707993642a1c971a0979f9bbbb50170ca1ca553c689e5824a0b6bc6dd6daf5a",
+      "lang": "ts",
+      "lastScan": 1755314744321
+    },
+    "src/utils/git.ts": {
+      "hash": "10a8216d5191620051af86241437b70dc8e33d9faa6e1f47255730919a26c78c",
+      "lang": "ts",
+      "lastScan": 1755314744322
+    },
+    "src/utils/hash.ts": {
+      "hash": "223be1b071adfcaab1c755580458604e9d0a53d9da669ccc8b579f4a967e0a89",
+      "lang": "ts",
+      "lastScan": 1755314744322
+    },
+    "src/utils/ignore.ts": {
+      "hash": "47d62e0ff0024b304b279637c3d24c37e91a0db79511063592a41ffe8fb8215c",
+      "lang": "ts",
+      "lastScan": 1755314744323
+    },
+    "src/utils/lsp.ts": {
+      "hash": "3d8f1054f94aebb21301fad77653c267d152a1ce31fdad52c8c34d48015da1ee",
+      "lang": "ts",
+      "lastScan": 1755314744323
+    },
+    "test-full-codemap.js": {
+      "hash": "00400dd165a93344da47c5291edfa7f577c2feb5eabf3fdc44144b2d04d17535",
+      "lang": "js",
+      "lastScan": 1755314744324
+    },
+    "test.js": {
+      "hash": "e1d177650070c98428e919df32ef1732d463f38509d5b8e9b89fc28d4c07d7fb",
+      "lang": "js",
+      "lastScan": 1755314744324
+    },
+    "tsconfig.json": {
+      "hash": "68a1350e3a487ad27c955025d3ae4cc93affd9ba5d0f90044522a78f8e21bd1f",
+      "lang": "json",
+      "lastScan": 1755314744325
+    },
+    "src/analyzers/smartDescriber.ts": {
+      "hash": "cc9d31a3fefaf29d4caf4d1265fd5e2903857380d1bde4c3179e989c93117465",
+      "lang": "ts",
+      "lastScan": 1755314744306
+    }
+  }
+}

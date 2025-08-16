@@ -2,6 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { FileEntry, SymbolEntry } from '../index/schemas';
+import { generateSmartDescription } from './smartDescriber';
 
 export interface DeepAnalysisResult {
   summary: string;
@@ -12,6 +13,50 @@ export interface DeepAnalysisResult {
   exports: ExportReference[];
   usages: UsageReference[];
   detectors: string[];
+  components: ComponentAnalysis[];
+  envVars: EnvironmentVariable[];
+  workflows: WorkflowPattern[];
+  relationships: RelationshipMap[];
+}
+
+export interface ComponentAnalysis {
+  name: string;
+  type: 'component' | 'hook' | 'service' | 'utility';
+  props?: PropDefinition[];
+  dependencies: string[];
+  usedBy: string[];
+  description?: string;
+  lineNumber?: number;
+}
+
+export interface PropDefinition {
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string;
+}
+
+export interface EnvironmentVariable {
+  name: string;
+  required: boolean;
+  description?: string;
+  usage: string[];
+  lineNumber?: number;
+}
+
+export interface WorkflowPattern {
+  name: string;
+  steps: string[];
+  description?: string;
+  relatedFiles: string[];
+}
+
+export interface RelationshipMap {
+  from: string;
+  to: string;
+  type: 'uses' | 'extends' | 'implements' | 'references' | 'calls';
+  cardinality?: '1-1' | '1-many' | 'many-1' | 'many-many';
+  description?: string;
 }
 
 export interface DetailedSymbol extends SymbolEntry {
@@ -72,7 +117,11 @@ export async function performDeepAnalysis(filePath: string, content: string, lan
     imports: [],
     exports: [],
     usages: [],
-    detectors: []
+    detectors: [],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
 
   try {
@@ -108,7 +157,11 @@ async function analyzeJavaScriptDeep(content: string, filePath: string): Promise
     imports: [],
     exports: [],
     usages: [],
-    detectors: []
+    detectors: [],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
 
   const lines = content.split('\n');
@@ -133,10 +186,20 @@ async function analyzeJavaScriptDeep(content: string, filePath: string): Promise
   // Extract React components and hooks
   if (result.detectors.includes('react')) {
     extractReactSymbols(lines, result);
+    extractComponentAnalysis(lines, result, filePath);
   }
   
   // Extract TypeScript interfaces and types
   extractTypeScriptSymbols(lines, result);
+  
+  // Extract environment variables
+  extractEnvironmentVariables(lines, result);
+  
+  // Extract workflow patterns
+  extractWorkflowPatterns(content, result, filePath);
+  
+  // Extract relationships
+  extractRelationships(result, filePath);
   
   // Generate comprehensive summary
   result.summary = generateJavaScriptDeepSummary(result, filePath);
@@ -264,13 +327,14 @@ async function extractJavaScriptSymbols(lines: string[], result: DeepAnalysisRes
     if (funcMatch) {
       const name = funcMatch[1];
       const params = funcMatch[2] ? funcMatch[2].split(',').map(p => p.trim()).filter(p => p) : [];
+      const bodyLines = extractFunctionBody(lines, i);
       
       const symbol: DetailedSymbol = {
         kind: 'function',
         name,
         parameters: params,
         lineNumber: i + 1,
-        description: extractFunctionDescription(lines, i),
+        description: generateSmartDescription(name, 'function', params, lines, i, bodyLines),
         complexity: calculateComplexity(lines, i)
       };
       
@@ -315,28 +379,71 @@ async function extractJavaScriptSymbols(lines: string[], result: DeepAnalysisRes
 }
 
 function extractRoutes(lines: string[], result: DeepAnalysisResult): void {
+  console.log('🛣️ Extracting routes...');
+  
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     
-    // Express routes: app.get('/path', handler)
-    const expressRouteMatch = line.match(/\.(?:get|post|put|delete|patch)\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(.+?)\)/);
+    // Express routes: app.get('/path', handler) or router.get('/path', middleware, handler)
+    const expressRouteMatch = line.match(/(?:app|router)\.(?:get|post|put|delete|patch)\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(.+)\)/);
     if (expressRouteMatch) {
       const method = line.match(/\.(\w+)\s*\(/)?.[1]?.toUpperCase() || 'GET';
       const path = expressRouteMatch[1];
-      const handler = expressRouteMatch[2];
+      const handlerPart = expressRouteMatch[2];
+      
+      // Extract middleware and handler
+      const parts = handlerPart.split(',').map(p => p.trim());
+      const handler = parts[parts.length - 1];
+      const middleware = parts.length > 1 ? parts.slice(0, -1) : [];
+      
+      console.log(`✅ Found Express route: ${method} ${path}`);
       
       result.routes.push({
         method,
         path,
-        handler: handler.trim(),
+        handler: handler.replace(/\)$/, '').trim(),
+        middleware: middleware.map(m => m.replace(/['"]/g, '')),
         lineNumber: i + 1,
         description: extractRouteDescription(lines, i)
       });
     }
     
+    // Simple route patterns for testing
+    const simpleRouteMatch = line.match(/\.(get|post|put|delete|patch)\s*\(\s*['"`]([^'"`]+)['"`]/);
+    if (simpleRouteMatch) {
+      const method = simpleRouteMatch[1].toUpperCase();
+      const path = simpleRouteMatch[2];
+      
+      console.log(`✅ Found simple route: ${method} ${path}`);
+      
+      result.routes.push({
+        method,
+        path,
+        handler: 'handler',
+        lineNumber: i + 1,
+        description: 'API route'
+      });
+    }
+    
+    // Express route definitions with app.use
+    const useRouteMatch = line.match(/app\.use\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(.+?)\)/);
+    if (useRouteMatch) {
+      console.log(`✅ Found Express middleware: USE ${useRouteMatch[1]}`);
+      
+      result.routes.push({
+        method: 'USE',
+        path: useRouteMatch[1],
+        handler: useRouteMatch[2].trim(),
+        lineNumber: i + 1,
+        description: 'Express middleware mount point'
+      });
+    }
+    
     // Next.js API routes (export function)
     const nextApiMatch = line.match(/export\s+(?:async\s+)?function\s+(\w+)/);
-    if (nextApiMatch && (nextApiMatch[1] === 'GET' || nextApiMatch[1] === 'POST' || nextApiMatch[1] === 'PUT' || nextApiMatch[1] === 'DELETE')) {
+    if (nextApiMatch && ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(nextApiMatch[1])) {
+      console.log(`✅ Found Next.js API route: ${nextApiMatch[1]}`);
+      
       result.routes.push({
         method: nextApiMatch[1],
         path: extractNextJSRoutePath(result.imports),
@@ -345,7 +452,52 @@ function extractRoutes(lines: string[], result: DeepAnalysisResult): void {
         description: 'Next.js API route'
       });
     }
+    
+    // REST endpoint patterns (fetch calls, axios calls)
+    const fetchMatch = line.match(/(?:fetch|axios\.(?:get|post|put|delete))\s*\(\s*['"`]([^'"`]+)['"`]/);
+    if (fetchMatch) {
+      const method = line.includes('axios.') ? 
+        line.match(/axios\.(\w+)/)?.[1]?.toUpperCase() || 'GET' : 
+        'GET'; // Default for fetch
+      
+      console.log(`✅ Found API client call: ${method} ${fetchMatch[1]}`);
+      
+      result.routes.push({
+        method,
+        path: fetchMatch[1],
+        handler: 'client-side call',
+        lineNumber: i + 1,
+        description: 'API client call'
+      });
+    }
   }
+  
+  console.log(`🛣️ Route extraction complete. Found ${result.routes.length} routes.`);
+}
+
+function extractFunctionBody(lines: string[], startIndex: number): string[] {
+  const bodyLines: string[] = [];
+  let braceCount = 0;
+  let foundStart = false;
+  
+  for (let i = startIndex; i < Math.min(startIndex + 15, lines.length); i++) {
+    const line = lines[i];
+    
+    if (line.includes('{')) {
+      foundStart = true;
+      braceCount += (line.match(/\{/g) || []).length;
+    }
+    if (line.includes('}')) {
+      braceCount -= (line.match(/\}/g) || []).length;
+    }
+    
+    if (foundStart) {
+      bodyLines.push(line.trim());
+      if (braceCount === 0) break;
+    }
+  }
+  
+  return bodyLines;
 }
 
 function extractReactSymbols(lines: string[], result: DeepAnalysisResult): void {
@@ -576,7 +728,11 @@ async function analyzePrismaDeep(content: string, filePath: string): Promise<Dee
     imports: [],
     exports: [],
     usages: [],
-    detectors: ['prisma']
+    detectors: ['prisma'],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
   
   const lines = content.split('\n');
@@ -633,7 +789,11 @@ async function analyzePythonDeep(content: string, filePath: string): Promise<Dee
     imports: [],
     exports: [],
     usages: [],
-    detectors: ['python']
+    detectors: ['python'],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
 }
 
@@ -648,7 +808,11 @@ async function analyzeSQLDeep(content: string, filePath: string): Promise<DeepAn
     imports: [],
     exports: [],
     usages: [],
-    detectors: ['sql']
+    detectors: ['sql'],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
 }
 
@@ -663,6 +827,172 @@ async function analyzeJSONDeep(content: string, filePath: string): Promise<DeepA
     imports: [],
     exports: [],
     usages: [],
-    detectors: ['json']
+    detectors: ['json'],
+    components: [],
+    envVars: [],
+    workflows: [],
+    relationships: []
   };
+}
+
+// Enhanced analysis functions for the new features
+
+function extractComponentAnalysis(lines: string[], result: DeepAnalysisResult, filePath: string): void {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // React component analysis
+    const componentMatch = line.match(/(?:export\s+)?(?:default\s+)?(?:function|const)\s+([A-Z]\w+)\s*[=\(]/);
+    if (componentMatch) {
+      const componentName = componentMatch[1];
+      const props = extractPropsFromComponent(lines, i);
+      const dependencies = extractComponentDependencies(lines, result.imports);
+      
+      result.components.push({
+        name: componentName,
+        type: 'component',
+        props,
+        dependencies,
+        usedBy: [], // Will be populated by cross-reference analysis
+        lineNumber: i + 1
+      });
+    }
+    
+    // Custom hooks
+    const hookMatch = line.match(/(?:export\s+)?(?:function|const)\s+(use[A-Z]\w+)\s*[=\(]/);
+    if (hookMatch) {
+      result.components.push({
+        name: hookMatch[1],
+        type: 'hook',
+        dependencies: extractComponentDependencies(lines, result.imports),
+        usedBy: [],
+        lineNumber: i + 1
+      });
+    }
+  }
+}
+
+function extractPropsFromComponent(lines: string[], startIndex: number): PropDefinition[] {
+  const props: PropDefinition[] = [];
+  
+  // Look for TypeScript interface or props destructuring
+  for (let i = startIndex; i < Math.min(startIndex + 10, lines.length); i++) {
+    const line = lines[i];
+    
+    // Props destructuring: { prop1, prop2, prop3 }
+    const propsMatch = line.match(/\{\s*([^}]+)\s*\}/);
+    if (propsMatch) {
+      const propNames = propsMatch[1].split(',').map(p => p.trim());
+      propNames.forEach(propName => {
+        const cleanName = propName.replace(/[:\?=].*/, '').trim();
+        if (cleanName && !cleanName.includes('...')) {
+          props.push({
+            name: cleanName,
+            type: 'any',
+            required: !propName.includes('?')
+          });
+        }
+      });
+    }
+  }
+  
+  return props;
+}
+
+function extractComponentDependencies(lines: string[], imports: ImportReference[]): string[] {
+  const dependencies: string[] = [];
+  
+  // Add imported modules as dependencies
+  imports.forEach(imp => {
+    dependencies.push(imp.module);
+  });
+  
+  return [...new Set(dependencies)]; // Remove duplicates
+}
+
+function extractEnvironmentVariables(lines: string[], result: DeepAnalysisResult): void {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Look for process.env usage
+    const envMatches = line.matchAll(/process\.env\.([A-Z_][A-Z0-9_]*)/g);
+    for (const match of envMatches) {
+      const envVar = match[1];
+      const existing = result.envVars.find(e => e.name === envVar);
+      
+      if (!existing) {
+        result.envVars.push({
+          name: envVar,
+          required: !line.includes('||') && !line.includes('??'), // Heuristic: required if no fallback
+          usage: [line.trim()],
+          lineNumber: i + 1
+        });
+      } else {
+        existing.usage.push(line.trim());
+      }
+    }
+  }
+}
+
+function extractWorkflowPatterns(content: string, result: DeepAnalysisResult, filePath: string): void {
+  // Detect common workflow patterns
+  
+  // API workflow pattern
+  if (filePath.includes('route') || filePath.includes('api')) {
+    const steps = [];
+    if (content.includes('auth') || content.includes('middleware')) steps.push('Authentication');
+    if (content.includes('validate') || content.includes('schema')) steps.push('Validation');
+    if (content.includes('prisma') || content.includes('database')) steps.push('Database Operation');
+    if (content.includes('response') || content.includes('json')) steps.push('Response');
+    
+    if (steps.length > 0) {
+      result.workflows.push({
+        name: 'API Request Flow',
+        steps,
+        description: 'Standard API request processing workflow',
+        relatedFiles: [filePath]
+      });
+    }
+  }
+  
+  // React component lifecycle
+  if (result.detectors.includes('react')) {
+    const steps = [];
+    if (content.includes('useState')) steps.push('State Management');
+    if (content.includes('useEffect')) steps.push('Side Effects');
+    if (content.includes('render') || content.includes('return')) steps.push('Rendering');
+    
+    if (steps.length > 0) {
+      result.workflows.push({
+        name: 'Component Lifecycle',
+        steps,
+        description: 'React component lifecycle pattern',
+        relatedFiles: [filePath]
+      });
+    }
+  }
+}
+
+function extractRelationships(result: DeepAnalysisResult, filePath: string): void {
+  // Build relationships from imports and exports
+  result.imports.forEach(imp => {
+    result.relationships.push({
+      from: filePath,
+      to: imp.module,
+      type: 'uses',
+      description: `Imports ${imp.items.join(', ')} from ${imp.module}`
+    });
+  });
+  
+  // Component usage relationships
+  result.components.forEach(comp => {
+    comp.dependencies.forEach(dep => {
+      result.relationships.push({
+        from: comp.name,
+        to: dep,
+        type: 'uses',
+        description: `${comp.name} depends on ${dep}`
+      });
+    });
+  });
 }

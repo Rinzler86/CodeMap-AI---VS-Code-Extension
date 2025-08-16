@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import { loadConfig } from '../config';
 import { getLogger } from '../logger';
+import { setStatusGitDetecting, setStatusUpdating, setStatusIdle } from '../statusBar';
 
 let gitPollingInterval: NodeJS.Timeout | undefined;
 
@@ -21,8 +22,10 @@ export function setupGitTrigger(context: vscode.ExtensionContext) {
         
         // Listen to repository state changes
         const disposable = repo.state.onDidChange(() => {
+          setStatusGitDetecting();
           logger.appendLine('Git state changed - triggering scan');
           // TODO: Detect changed files and update CODEMAP.md
+          setStatusIdle();
         });
         
         context.subscriptions.push(disposable);

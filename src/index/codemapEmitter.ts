@@ -89,13 +89,53 @@ export async function emitCodeMap(files: FileEntry[], config: any, workspaceRoot
         content += `exports:\n${exportLines.join('\n')}\n`;
       }
       
-      // Display routes
+      // Display API routes
       if (deep.routes && deep.routes.length > 0) {
-        content += `routes:\n`;
+        content += `\n**API ENDPOINTS:**\n`;
         for (const route of deep.routes) {
-          content += `  ${route.method} ${route.path} → ${route.handler}`;
+          content += `  - ${route.method} ${route.path} → ${route.handler}`;
           if (route.description) content += ` // ${route.description}`;
           content += ` (line ${route.lineNumber})\n`;
+          if (route.middleware && route.middleware.length > 0) {
+            content += `    middleware: ${route.middleware.join(', ')}\n`;
+          }
+        }
+      }
+      
+      // Display component analysis
+      if (deep.components && deep.components.length > 0) {
+        content += `\n**COMPONENT ANALYSIS:**\n`;
+        for (const comp of deep.components) {
+          content += `  - ${comp.name} (${comp.type})`;
+          if (comp.props && comp.props.length > 0) {
+            const propsList = comp.props.map((p: any) => `${p.name}${p.required ? '' : '?'}: ${p.type}`).join(', ');
+            content += `\n    Props: { ${propsList} }`;
+          }
+          if (comp.dependencies.length > 0) {
+            content += `\n    Uses: ${comp.dependencies.join(', ')}`;
+          }
+          content += `\n`;
+        }
+      }
+      
+      // Display environment variables
+      if (deep.envVars && deep.envVars.length > 0) {
+        content += `\n**ENVIRONMENT VARIABLES:**\n`;
+        for (const envVar of deep.envVars) {
+          content += `  - ${envVar.name}${envVar.required ? ' (required)' : ' (optional)'}`;
+          if (envVar.description) content += ` - ${envVar.description}`;
+          content += `\n`;
+        }
+      }
+      
+      // Display workflow patterns
+      if (deep.workflows && deep.workflows.length > 0) {
+        content += `\n**WORKFLOW PATTERNS:**\n`;
+        for (const workflow of deep.workflows) {
+          content += `  - ${workflow.name}: ${workflow.steps.join(' → ')}\n`;
+          if (workflow.description) {
+            content += `    ${workflow.description}\n`;
+          }
         }
       }
       
@@ -112,6 +152,10 @@ export async function emitCodeMap(files: FileEntry[], config: any, workspaceRoot
             if (schema.fields.length > 10) {
               content += `    ... and ${schema.fields.length - 10} more fields\n`;
             }
+          }
+          // Display relationships if available
+          if (schema.relations && schema.relations.length > 0) {
+            content += `    Relations: ${schema.relations.map((r: any) => `${r.name} → ${r.target}`).join(', ')}\n`;
           }
         }
       }
@@ -137,6 +181,10 @@ export async function emitCodeMap(files: FileEntry[], config: any, workspaceRoot
     }
     content += `\n`;
   }
+  
+  // ENHANCED ANALYSIS SUMMARIES
+  console.log('🔍 Generating enhanced analysis summary...');
+  content += generateEnhancedAnalysisSummary(ungrouped);
   
   // CROSS-REFERENCES section
   content += generateCrossReferences(ungrouped);
@@ -426,4 +474,137 @@ function formatDetailedSymbolsForOutput(symbols: any[]): string {
   }
   
   return output;
+}
+
+function generateEnhancedAnalysisSummary(files: FileEntry[]): string {
+  let content = `## ENHANCED ANALYSIS\n\n`;
+  
+  // Collect all deep analysis data
+  const allRoutes: any[] = [];
+  const allComponents: any[] = [];
+  const allEnvVars: any[] = [];
+  const allWorkflows: any[] = [];
+  const allRelationships: any[] = [];
+  
+  console.log(`🔍 Processing ${files.length} files for enhanced analysis...`);
+  
+  for (const file of files) {
+    const deep = (file as any).deepAnalysis;
+    if (deep) {
+      console.log(`📁 Found deep analysis for ${file.path}:`);
+      console.log(`   - Routes: ${deep.routes?.length || 0}`);
+      console.log(`   - Components: ${deep.components?.length || 0}`);
+      console.log(`   - EnvVars: ${deep.envVars?.length || 0}`);
+      console.log(`   - Workflows: ${deep.workflows?.length || 0}`);
+      
+      if (deep.routes) allRoutes.push(...deep.routes.map((r: any) => ({ ...r, file: file.path })));
+      if (deep.components) allComponents.push(...deep.components.map((c: any) => ({ ...c, file: file.path })));
+      if (deep.envVars) allEnvVars.push(...deep.envVars.map((e: any) => ({ ...e, file: file.path })));
+      if (deep.workflows) allWorkflows.push(...deep.workflows);
+      if (deep.relationships) allRelationships.push(...deep.relationships);
+    } else {
+      console.log(`❌ No deep analysis found for ${file.path}`);
+    }
+  }
+  
+  console.log(`📊 Enhanced analysis totals:`);
+  console.log(`   - Total Routes: ${allRoutes.length}`);
+  console.log(`   - Total Components: ${allComponents.length}`);
+  console.log(`   - Total EnvVars: ${allEnvVars.length}`);
+  console.log(`   - Total Workflows: ${allWorkflows.length}`);
+  
+  // Only generate sections if we have data
+  if (allRoutes.length === 0 && allComponents.length === 0 && allEnvVars.length === 0 && allWorkflows.length === 0) {
+    console.log('⚠️ No enhanced analysis data found, skipping enhanced analysis section');
+    return '';
+  }
+  
+  // API Endpoints Summary
+  if (allRoutes.length > 0) {
+    content += `### API ENDPOINTS\n`;
+    const routesByFile = allRoutes.reduce((acc: any, route) => {
+      const fileName = route.file.split('/').pop();
+      if (!acc[fileName]) acc[fileName] = [];
+      acc[fileName].push(route);
+      return acc;
+    }, {});
+    
+    for (const [fileName, routes] of Object.entries(routesByFile)) {
+      content += `\n#### ${fileName}\n`;
+      for (const route of routes as any[]) {
+        content += `- **${route.method} ${route.path}** → ${route.handler}`;
+        if (route.description) content += ` // ${route.description}`;
+        content += `\n`;
+        if (route.middleware && route.middleware.length > 0) {
+          content += `  - Middleware: ${route.middleware.join(', ')}\n`;
+        }
+      }
+    }
+    content += `\n`;
+  }
+  
+  // Component Dependencies
+  if (allComponents.length > 0) {
+    content += `### COMPONENT RELATIONSHIPS\n`;
+    const componentsByFile = allComponents.reduce((acc: any, comp) => {
+      const fileName = comp.file.split('/').pop();
+      if (!acc[fileName]) acc[fileName] = [];
+      acc[fileName].push(comp);
+      return acc;
+    }, {});
+    
+    for (const [fileName, components] of Object.entries(componentsByFile)) {
+      content += `\n#### ${fileName}\n`;
+      for (const comp of components as any[]) {
+        content += `- **${comp.name}** (${comp.type})`;
+        if (comp.props && comp.props.length > 0) {
+          const propsList = comp.props.map((p: any) => `${p.name}${p.required ? '' : '?'}: ${p.type}`).join(', ');
+          content += `\n  - Props: { ${propsList} }`;
+        }
+        if (comp.dependencies.length > 0) {
+          content += `\n  - Uses: ${comp.dependencies.join(', ')}`;
+        }
+        content += `\n`;
+      }
+    }
+    content += `\n`;
+  }
+  
+  // Environment Variables
+  if (allEnvVars.length > 0) {
+    content += `### CONFIGURATION\n`;
+    content += `#### Required Environment Variables\n`;
+    const uniqueEnvVars = Array.from(new Set(allEnvVars.map(e => e.name)))
+      .map(name => allEnvVars.find(e => e.name === name));
+    
+    for (const envVar of uniqueEnvVars) {
+      if (envVar) {
+        content += `- **${envVar.name}**${envVar.required ? ' (required)' : ' (optional)'}`;
+        if (envVar.description) content += ` - ${envVar.description}`;
+        content += `\n`;
+        content += `  - Used in: ${allEnvVars.filter(e => e.name === envVar.name).map(e => e.file.split('/').pop()).join(', ')}\n`;
+      }
+    }
+    content += `\n`;
+  }
+  
+  // Business Logic Workflows
+  if (allWorkflows.length > 0) {
+    content += `### CORE WORKFLOWS\n`;
+    const uniqueWorkflows = Array.from(new Set(allWorkflows.map(w => w.name)))
+      .map(name => allWorkflows.find(w => w.name === name));
+    
+    for (const workflow of uniqueWorkflows) {
+      if (workflow) {
+        content += `#### ${workflow.name}\n`;
+        content += `${workflow.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join(' → ')}\n`;
+        if (workflow.description) {
+          content += `${workflow.description}\n`;
+        }
+        content += `\n`;
+      }
+    }
+  }
+  
+  return content;
 }

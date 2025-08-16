@@ -16,16 +16,53 @@ export function initializeStatusBar(context: vscode.ExtensionContext) {
 }
 
 export function updateStatusBar(state: string) {
+  console.log(`[StatusBar] Updating status to: ${state}`);
   if (statusBar) {
     statusBar.text = `CodeMap: ${state}`;
     statusBar.tooltip = `CodeMap AI - ${state}`;
+    console.log(`[StatusBar] Status bar updated successfully to: ${statusBar.text}`);
+  } else {
+    console.log(`[StatusBar] ERROR: statusBar is undefined!`);
   }
 }
 
+// Specific status functions for different operations
 export function setStatusScanning() {
-  updateStatusBar('scanning…');
+  console.log(`[StatusBar] setStatusScanning called`);
+  updateStatusBar('scanning files…');
+}
+
+export function setStatusAnalyzing() {
+  console.log(`[StatusBar] setStatusAnalyzing called`);
+  updateStatusBar('analyzing code…');
+}
+
+export function setStatusGenerating() {
+  console.log(`[StatusBar] setStatusGenerating called`);
+  updateStatusBar('generating CODEMAP…');
+}
+
+export function setStatusSaving() {
+  console.log(`[StatusBar] setStatusSaving called`);
+  updateStatusBar('saving CODEMAP…');
+}
+
+export function setStatusGitDetecting() {
+  console.log(`[StatusBar] setStatusGitDetecting called`);
+  updateStatusBar('detecting git changes…');
+}
+
+export function setStatusUpdating() {
+  console.log(`[StatusBar] setStatusUpdating called`);
+  updateStatusBar('updating analysis…');
 }
 
 export function setStatusIdle() {
+  console.log(`[StatusBar] setStatusIdle called`);
   updateStatusBar('idle');
+}
+
+export function setStatusWorking(operation: string) {
+  console.log(`[StatusBar] setStatusWorking called with: ${operation}`);
+  updateStatusBar(`${operation}…`);
 }

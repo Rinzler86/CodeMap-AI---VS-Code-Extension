@@ -4,20 +4,7 @@ import { setupCommandTriggers } from './triggers/commandTrigger';
 import { setupSaveTrigger } from './triggers/saveTrigger';
 import { setupWorkspaceOpenTrigger } from './triggers/workspaceOpenTrigger';
 import { setupGitTrigger } from './triggers/gitTrigger';
-
-// Simple status bar implementation inline
-let statusBarItem: vscode.StatusBarItem | undefined;
-
-function initializeStatusBar(context: vscode.ExtensionContext) {
-  if (!statusBarItem) {
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    statusBarItem.command = 'codemap.openSummary';
-    statusBarItem.text = 'CodeMap: idle';
-    statusBarItem.tooltip = 'CodeMap AI - Click to open summary';
-    statusBarItem.show();
-    context.subscriptions.push(statusBarItem);
-  }
-}
+import { initializeStatusBar } from './statusBar';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('CodeMap AI extension is activating...');

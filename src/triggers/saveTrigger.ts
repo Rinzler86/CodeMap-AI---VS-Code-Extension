@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { incrementalScan } from '../index/indexStore';
 import { loadConfig } from '../config';
 import { getLogger } from '../logger';
+import { setStatusUpdating } from '../statusBar';
 
 let saveTimeout: NodeJS.Timeout | undefined;
 
@@ -19,6 +20,7 @@ export function setupSaveTrigger(context: vscode.ExtensionContext) {
     // Debounce the scan
     saveTimeout = setTimeout(async () => {
       try {
+        setStatusUpdating();
         await incrementalScan(doc, config, logger);
       } catch (e) {
         logger.appendLine(`Save trigger error: ${e}`);

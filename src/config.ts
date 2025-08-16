@@ -5,6 +5,8 @@ export function loadConfig() {
   const config = vscode.workspace.getConfiguration('codemap');
   return {
     maxFileKB: config.get('maxFileKB', 800),
+    maxSymbols: config.get('maxSymbols', 1000),
+    maxRefs: config.get('maxRefs', 500),
     shardMaxKB: config.get('shardMaxKB', 200),
     debounceMs: config.get('debounceMs', 750),
     enableGitIntegration: config.get('enableGitIntegration', true),

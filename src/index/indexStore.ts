@@ -8,6 +8,7 @@ import { hashFile } from '../utils/hash';
 import { detectLang } from '../utils/lsp';
 import { emitCodeMap } from './codemapEmitter';
 import { getIgnoreGlobs } from '../utils/ignore';
+import { setStatusScanning, setStatusAnalyzing, setStatusGenerating, setStatusSaving, setStatusIdle } from '../statusBar';
 import { analyzeFile, isImportantFile } from '../analyzers/codeAnalyzer';
 
 // Check if a file is binary by extension or content
@@ -143,16 +144,19 @@ async function extractSymbols(filePath: string, logger?: vscode.OutputChannel): 
 
 // Main scan function
 export async function scanWorkspace(config: any, logger: vscode.OutputChannel): Promise<void> {
+  setStatusScanning();
+  
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders) {
     logger.appendLine('❌ No workspace folders found!');
+    setStatusIdle();
     return;
   }
   
   const root = workspaceFolders[0].uri.fsPath;
   logger.appendLine(`🚀 Starting scan of workspace: ${root}`);
   logger.appendLine(`�️ Platform: ${process.platform}`);
-  logger.appendLine(`�📋 Config: maxFileKB=${config.maxFileKB}, extraIgnoreGlobs=${JSON.stringify(config.extraIgnoreGlobs)}`);
+  logger.appendLine(`�📋 Config: maxFileKB=${config.maxFileKB}, maxSymbols=${config.maxSymbols}, maxRefs=${config.maxRefs}, extraIgnoreGlobs=${JSON.stringify(config.extraIgnoreGlobs)}`);
   
   // Verify the workspace directory exists and list its immediate contents
   try {
@@ -194,6 +198,8 @@ export async function scanWorkspace(config: any, logger: vscode.OutputChannel): 
     const fileEntries: FileEntry[] = [];
     let processed = 0;
     
+    setStatusAnalyzing();
+    
     for (const filePath of files) {
       const relativePath = path.relative(root, filePath).replace(/\\/g, '/');
       const currentHash = hashFile(filePath);
@@ -230,7 +236,11 @@ export async function scanWorkspace(config: any, logger: vscode.OutputChannel): 
               const analysisResult = await analyzeFile(filePath, content, lang);
               entry.deepAnalysis = (analysisResult as any).deepAnalysis;
               entry.summary = analysisResult.summary || `${Math.round(stats.size / 1024)}KB file`;
-              entry.symbols = analysisResult.symbols.slice(0, 150).map(s => ({
+              
+              const maxSymbols = config.maxSymbols || 1000;
+              logger.appendLine(`🔢 Truncation limits for ${relativePath}: maxSymbols=${maxSymbols}, found ${analysisResult.symbols.length} symbols`);
+              
+              entry.symbols = analysisResult.symbols.slice(0, maxSymbols).map(s => ({
                 kind: s.kind,
                 name: s.name,
                 detail: s.detail
@@ -271,16 +281,18 @@ export async function scanWorkspace(config: any, logger: vscode.OutputChannel): 
           hash: currentHash,
           bytes: stats.size,
           summary: analysisResult.summary || `${Math.round(stats.size / 1024)}KB file`,
-          symbols: analysisResult.symbols.slice(0, 150).map(s => ({
+          symbols: analysisResult.symbols.slice(0, config.maxSymbols || 1000).map(s => ({
             kind: s.kind,
             name: s.name,
             detail: s.detail
           })),
-          refs: analysisResult.refs.slice(0, 50),
+          refs: analysisResult.refs.slice(0, config.maxRefs || 500),
           detectors: analysisResult.detectors,
-          truncated: analysisResult.symbols.length > 150 || analysisResult.refs.length > 50,
+          truncated: analysisResult.symbols.length > (config.maxSymbols || 1000) || analysisResult.refs.length > (config.maxRefs || 500),
           deepAnalysis: (analysisResult as any).deepAnalysis // Preserve deep analysis results
         };
+        
+        logger.appendLine(`🔢 File ${relativePath}: ${analysisResult.symbols.length} symbols (limit: ${config.maxSymbols || 1000}), ${analysisResult.refs.length} refs (limit: ${config.maxRefs || 500}), truncated: ${analysisResult.symbols.length > (config.maxSymbols || 1000) || analysisResult.refs.length > (config.maxRefs || 500)}`);
       }
       
       fileEntries.push(entry);
@@ -300,17 +312,26 @@ export async function scanWorkspace(config: any, logger: vscode.OutputChannel): 
     }
     
     // Save index and emit CODEMAP
+    setStatusSaving();
     indexStore.save(root);
+    
+    setStatusGenerating();
     await emitCodeMap(fileEntries, config, root);
     
     logger.appendLine(`Scan complete: ${fileEntries.length} files processed.`);
+    setStatusIdle();
   });
 }
 
 // Incremental scan for a single file
 export async function incrementalScan(doc: vscode.TextDocument, config: any, logger: vscode.OutputChannel): Promise<void> {
+  setStatusAnalyzing();
+  
   const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (!workspaceFolders) return;
+  if (!workspaceFolders) {
+    setStatusIdle();
+    return;
+  }
   
   const root = workspaceFolders[0].uri.fsPath;
   const filePath = doc.fileName;
@@ -319,4 +340,5 @@ export async function incrementalScan(doc: vscode.TextDocument, config: any, log
   logger.appendLine(`Incremental scan: ${relativePath}`);
   
   // TODO: Update just this file in CODEMAP.md
+  setStatusIdle();
 }

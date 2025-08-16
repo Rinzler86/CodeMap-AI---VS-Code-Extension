@@ -34,6 +34,8 @@
       "title": "CodeMap AI",
       "properties": {
         "codemap.maxFileKB": { "type": "number", "default": 800, "description": "Max file size to scan (KB)" },
+        "codemap.maxSymbols": { "type": "number", "default": 1000, "description": "Max symbols per file (0 = unlimited)" },
+        "codemap.maxRefs": { "type": "number", "default": 500, "description": "Max references per file (0 = unlimited)" },
         "codemap.shardMaxKB": { "type": "number", "default": 200, "description": "Max shard size (KB)" },
         "codemap.debounceMs": { "type": "number", "default": 750, "description": "Debounce time for triggers (ms)" },
         "codemap.enableGitIntegration": { "type": "boolean", "default": true, "description": "Enable Git integration" },

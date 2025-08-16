@@ -4,6 +4,7 @@ import { scanWorkspace } from '../index/indexStore';
 import { showSummaryWebview } from '../ui/summaryWebview';
 import { loadConfig } from '../config';
 import { getLogger, enableOutputChannel } from '../logger';
+import { setStatusWorking, setStatusIdle } from '../statusBar';
 
 export function setupWorkspaceOpenTrigger(context: vscode.ExtensionContext) {
   const logger = getLogger();
@@ -22,14 +23,17 @@ export function setupWorkspaceOpenTrigger(context: vscode.ExtensionContext) {
     const config = loadConfig();
     
     try {
+      setStatusWorking('initial scan');
       await scanWorkspace(config, logger);
       logger.appendLine('✅ Initial scan completed');
       
       if (config.summaryOnOpen) {
         showSummaryWebview();
       }
+      setStatusIdle();
     } catch (e) {
       logger.appendLine(`❌ Initial scan failed: ${e}`);
+      setStatusIdle();
     }
   };
   
